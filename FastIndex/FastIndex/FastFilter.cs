@@ -94,17 +94,21 @@ namespace FastIndex
         private readonly int _xorHashSegmentSize;
 
         private readonly ArraySegment<NUM>[] _fingerprintXorHashSegment;
+        private readonly Byte[] _iQIndexXor;
+        private readonly ArraySegment<Byte>[] iQIndexXorSegment;
 
-        public FastFilter(IList<NUM> fingerprints, ulong seed, int numHashes)
-            : this(fingerprints, seed, numHashes, FNVHash)
+        public FastFilter(IList<NUM> fingerprints, ulong seed, int numHashes, Byte[] iQIndexXor = null)
+            : this(fingerprints, seed, numHashes, iQIndexXor, FNVHash)
         {
         }
 
-        public FastFilter(IList<NUM> fingerprintXorHash, ulong seed, int numHashes, Func<ulong, ulong> hasher)
+        public FastFilter(IList<NUM> fingerprintXorHash, ulong seed, int numHashes, Byte[] iQIndexXor, Func<ulong, ulong> hasher)
         {
             (typeof(NUM) == typeof(Byte) || typeof(NUM) == typeof(UInt16) || typeof(NUM) == typeof(UInt32)).MustBe(true);
             fingerprintXorHash.MustNotBeNull();
             hasher.MustNotBeNull();
+
+            _iQIndexXor = iQIndexXor;
 
             _hasher = hasher;
 
@@ -121,6 +125,15 @@ namespace FastIndex
                 _fingerprintXorHashSegment[i] = new ArraySegment<NUM>(Data, _xorHashSegmentSize * i, _xorHashSegmentSize);
             }
 
+            iQIndexXorSegment = null;
+            if (_iQIndexXor != null)
+            {
+                iQIndexXorSegment = new ArraySegment<byte>[numHashes];
+                for (var i = 0; i < numHashes; i++)
+                {
+                    iQIndexXorSegment[i] = new ArraySegment<Byte>(_iQIndexXor, _xorHashSegmentSize * i, _xorHashSegmentSize);
+                }
+            }
         }
 
         public int FingerprintBitSize { get; } = ICall.Bits();
@@ -146,6 +159,47 @@ namespace FastIndex
             return ICall.Equals(fingerprint, fingerprintXor);
         }
 
+        /// <summary>
+        /// Combine Contains and ability to construct an index to return the unique index within CalcFingerprintArraySize(totalKeys) for the given key. 
+        /// Along the lines of Perfect Hash, this then is a Perfect Index.
+        /// 
+        /// All kinds of uses. Effectively solves the sparse array problem, packing data and mapping it into a dense array that can be indexed into.
+        /// 
+        /// Provides O(1) lookup.
+        /// 
+        /// Saves electricity. Saves the planet.
+        /// 
+        /// </summary>
+        /// <param name="key">Key to lookup index for</param>
+        /// <returns>-2 if not configured to support indexes, -1 if not Contains, or index in range 0..CalcFingerprintArraySize(totalKeys)</returns>
+        public unsafe int Index(ulong key)
+        {
+            if (iQIndexXorSegment == null)
+            {
+                return -2;
+            }
+
+            var hash = _hasher(key + Seed);
+
+            var fingerprint = ICall.ToFingerPrintType(hash ^ (hash >> XorHashShift));
+
+            var index = stackalloc int[_fingerprintXorHashSegment.Length];
+
+            // NOTE - only perf test this on a Release build!
+            for (var i = 0; i < _fingerprintXorHashSegment.Length; i++)
+            {
+                index[i] = XorHashIndexers[i](hash, _xorHashSegmentSize);
+            }
+            var fingerprintXor = _fingerprintXorHashSegment[0][index[0]];
+            var iQ = iQIndexXorSegment[0][index[0]];
+            for (var i = 1; i < _fingerprintXorHashSegment.Length; i++)
+            {
+                fingerprintXor = ICall.XOR(fingerprintXor, _fingerprintXorHashSegment[i][index[i]]);
+                iQ ^= iQIndexXorSegment[i][index[i]];
+            }
+
+            return ICall.Equals(fingerprint, fingerprintXor) ? index[iQ] + iQ * _xorHashSegmentSize : - 1;
+        }
     }
 
     /// <summary>
@@ -262,9 +316,10 @@ namespace FastIndex
                 success = GeneratePerfectHash(keys, seed, xorHashSegmentSize);
             } while (!success);
 
-            var fingerprints = GenerateKeyFingerprints(fingerprintArraySize, xorHashSegmentSize);
+            Byte[] iQIndexXor;
+            var fingerprints = GenerateKeyFingerprints(fingerprintArraySize, xorHashSegmentSize, out iQIndexXor);
 
-            return new FastFilter<T, IFinger, NUM>(fingerprints, seed, _numHashes);
+            return new FastFilter<T, IFinger, NUM>(fingerprints, seed, _numHashes, iQIndexXor);
         }
 
         private static HashKeyCounter EmptyKeyCount = new HashKeyCounter();
@@ -363,14 +418,17 @@ namespace FastIndex
         }
 
         /// Algorithm 4 - Generate Fingerprints
-        private NUM[] GenerateKeyFingerprints(int fingerprintArraySize, int xorHashSegmentSize)
+        private NUM[] GenerateKeyFingerprints(int fingerprintArraySize, int xorHashSegmentSize, out Byte[]iQIndexXor)
         {
             var fingerprintXorHash = new NUM[fingerprintArraySize];
+            iQIndexXor = new Byte[fingerprintArraySize];
 
             var fingerprintXorHashSegment = new ArraySegment<NUM>[_numHashes];
+            var iQIndexXorSegment = new ArraySegment<Byte>[_numHashes];
             for (var i = 0; i < _numHashes; i++)
             {
                 fingerprintXorHashSegment[i] = new ArraySegment<NUM>(fingerprintXorHash, xorHashSegmentSize * i, xorHashSegmentSize);
+                iQIndexXorSegment[i] = new ArraySegment<Byte>(iQIndexXor, xorHashSegmentSize * i, xorHashSegmentSize);
             }
 
             foreach ((var keyHash, var absoluteIndex) in _discoveryStack)
@@ -394,9 +452,11 @@ namespace FastIndex
                     var iQMap = QSegmentMap[iQ, i];
                     var hashIndex = XorHashIndexers[iQMap](keyHash, xorHashSegmentSize);
                     fingerprintXor = ICall.XOR(fingerprintXor, fingerprintXorHashSegment[iQMap][hashIndex]);
+                    iQXor ^= iQIndexXorSegment[iQMap][hashIndex];
                 }
 
                 fingerprintXorHash[absoluteIndex] = fingerprintXor;
+                iQIndexXor[absoluteIndex] = (Byte)iQXor;
             }
 
             return fingerprintXorHash;
