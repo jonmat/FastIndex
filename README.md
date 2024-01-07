@@ -1,2 +1,30 @@
 # FastIndex
-Leverage FastFilter algorithm to create an index
+Leverage FastFilter (XOR filter) algorithm to create an index, resulting in a solution for generating a [Perfect Hash](https://en.wikipedia.org/wiki/Perfect_hash_function)
+
+# Modifications
+This is a C# solution. The modifications required to obtain the index can be seen by reviewing [this commit](https://github.com/jonmat/FastIndex/commit/b88096205ad7aed47c66f27980174785644786b5).
+
+# Main benefit
+The solution has all the characteristics of XOR Filters, and as [expressed by researchers](https://arxiv.org/abs/1912.08258), the index has the benefit of fitting into a compact memory space.
+
+# Lookup Performance
+No fancy charts: On a 10th gen Intel I5 laptop, with 100 million keys, the average lookup time observed was 31ns, similar to Dictionary data structure lookups with hashing.
+
+# Improvements
+The main property leveraged to compute the index relies on the design of XOR filters making use of 3 constant size array segments, which lends to the simplicity of computing the index.
+
+Computing the index requires knowing which of the 3 array segments—that make up the XOR filters used to generate a fingerprint—is the primary segment, and saving that off. The presented solution stores the primary segment's index value in a lookaside Byte array. But since it only requires 2 bits to store a value between 0 and 2—representing array segments 0, 1, or 2—an improved solution for storage efficiency would be to multiplex those 2 bits onto the fingerprint. The downside of course, is that due to the fact that XOR filters are an example of a [probabilistic lookup strategy](https://medium.com/hyperblogblog/probabilistic-data-structure-use-cases-b414574b8961), loosing 2 bits from the fingerprint means that you increase the likelihood of a hash collision. 
+
+# Generation Improvements
+A simple solution for decreasing the amount of time to construct the filter is to make use of all of the processing cores available, and run the algorithm in parallel on subsets of the key space, by partitioning the key space into distinct subsets, and creating a separate XOR filter for each distinct subset. Of course, doing this implies that the complexity of managing multiple XOR filters for a given key space goes up.
+
+Another approach to speed up construction that was recently published, is to [leverage a GPU](https://dash.harvard.edu/bitstream/handle/1/37375028/CHUA-DOCUMENT-2023.pdf?sequence=1).
+
+Since the use case for this generally would be to lookup data that may not change a lot, a simple approach would be to save off the data of the completed XOR filter to a persistent store, and load it back in to main memory when needed. 
+
+# References
+1) [FastFilter](https://github.com/FastFilter/xorfilter)
+2) [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters authored by Thomas Mueller Graf, Daniel Lemire](https://arxiv.org/abs/1912.08258)
+
+
+
