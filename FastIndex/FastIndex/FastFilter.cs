@@ -85,6 +85,7 @@ namespace FastIndex
     {
         public ulong Seed { get; }
         public NUM[] Data { get; }
+        public Byte[] IQIndexXor => _iQIndexXor;
         public int NumHashes { get; }
 
         private readonly static IFinger ICall = default;   // IFinger interface calls will be removed by the compiler's optimizer on release builds.
