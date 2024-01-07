@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FastIndex.Tests
 {
@@ -11,13 +12,13 @@ namespace FastIndex.Tests
 
         public TestData[]? IndexedTestData { get; set; }
 
-        private HashSet<ulong> _testDataHashKeys;
+        private HashSet<TestData> _testDataHashSet;
 
         public FastIndexTestHelper(int count)
         {
             Count = count;
             TestData = new TestData[Count];
-            _testDataHashKeys = new HashSet<ulong>();
+            _testDataHashSet = new HashSet<TestData>(TestDataEqualityComparer.Instance);
         }
 
         public void GenerateRandomTestData(Faker faker)
@@ -32,7 +33,7 @@ namespace FastIndex.Tests
             while (totalAdded < Count)
             {
                 var testData = new TestData(faker.Phone.PhoneNumber());
-                if (_testDataHashKeys.Add(testData.HashKey))
+                if (_testDataHashSet.Add(testData))
                 {
                     TestData[totalAdded++] = testData;
                 }
@@ -43,9 +44,10 @@ namespace FastIndex.Tests
         {
             var fastFilterConstructor = new FastFilterConstructor<TestData, Finger32, UInt32>(Count, 3);
 
-            var fastFilter = fastFilterConstructor.Construct(_testDataHashKeys);
+            var hashKeys = _testDataHashSet.Select(x => (ulong) x.HashKey).ToHashSet();
+            var fastFilter = fastFilterConstructor.Construct(hashKeys);
 
-            // note, safe these params to persistent store for quick reconstruction
+            // note, save these params to persistent store for quick reconstruction
             return new FastFilterForTestData(fastFilter.Data, fastFilter.Seed, fastFilter.NumHashes, fastFilter.IQIndexXor);
         }
 

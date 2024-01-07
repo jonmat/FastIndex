@@ -9,13 +9,13 @@ namespace FastIndex.Tests
     public class TestData : IEquatable<TestData>
     {
         public string Message { get; }
-        public UInt32 HashKey { get; }
+        public UInt64 HashKey { get; }
 
 
         public TestData(string message)
         {
             Message = message;
-            HashKey = XxHash32.HashToUInt32(Encoding.UTF8.GetBytes(message));
+            HashKey = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(message));
         }
 
         public bool Equals(TestData? other)
