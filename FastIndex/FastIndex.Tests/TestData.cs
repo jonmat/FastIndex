@@ -9,6 +9,8 @@ namespace FastIndex.Tests
     public class TestData : IEquatable<TestData>
     {
         public string Message { get; }
+
+        // MUST be a 64 bit hash for optimal xor filter construction.
         public UInt64 HashKey { get; }
 
 

@@ -124,7 +124,7 @@ namespace FastIndex.Tests
         {
 
 #if !DEBUG
-            TestHelper = new FastIndexTestHelper(250000);
+            TestHelper = new FastIndexTestHelper(10000000);  // 10 million Test Data items
             TestHelper.GenerateRandomTestData(Faker);
             FastFilterForTestData = TestHelper.ConstructFastFilterForTestData();
 #else

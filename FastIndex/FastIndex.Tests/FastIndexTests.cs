@@ -104,7 +104,7 @@ namespace FastIndex.Tests
 #endif  
         ]
 
-        public void OneMillion_IndexLookups_Against_250K_RandomDataItems_Succeeds()
+        public void OneMillion_IndexLookups_Against_10Million_RandomDataItems_Succeeds()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -133,7 +133,7 @@ namespace FastIndex.Tests
             (Skip="Only run Performance Test in Release Build")
 #endif
 ]
-        public void OneMillion_ContainsLookups_Against_250K_RandomDataItems_Succeeds()
+        public void OneMillion_ContainsLookups_Against_10Million_RandomDataItems_Succeeds()
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
