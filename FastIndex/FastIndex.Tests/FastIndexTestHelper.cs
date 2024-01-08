@@ -119,12 +119,17 @@ namespace FastIndex.Tests
 
         public FastFilterForTestData? FastFilterForTestData { get; }
 
-
         public FastIndexTestFixture()
+            : this(10000000 /* default - 10 million Test Data items */)
         {
 
-#if !DEBUG
-            TestHelper = new FastIndexTestHelper(10000000);  // 10 million Test Data items
+        }
+
+        public FastIndexTestFixture(int testDataSize)
+        {
+
+#if !DEBUG // Release Build 
+            TestHelper = new FastIndexTestHelper(testDataSize);  // 10 million Test Data items
             TestHelper.GenerateRandomTestData(Faker);
             FastFilterForTestData = TestHelper.ConstructFastFilterForTestData();
 #else

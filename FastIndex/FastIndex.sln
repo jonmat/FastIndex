@@ -5,7 +5,9 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastIndex", "FastIndex\FastIndex.csproj", "{5074CB94-673A-40C9-A1A2-273145AC29FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastIndex.Tests", "FastIndex.Tests\FastIndex.Tests.csproj", "{6B8EF961-2B9C-4B95-8307-2F368895351E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastIndex.Tests", "FastIndex.Tests\FastIndex.Tests.csproj", "{6B8EF961-2B9C-4B95-8307-2F368895351E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchMark", "..\BenchMark\BenchMark.csproj", "{50BB3B55-DA58-4A9A-8F59-CF4779EA8789}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{6B8EF961-2B9C-4B95-8307-2F368895351E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B8EF961-2B9C-4B95-8307-2F368895351E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B8EF961-2B9C-4B95-8307-2F368895351E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50BB3B55-DA58-4A9A-8F59-CF4779EA8789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50BB3B55-DA58-4A9A-8F59-CF4779EA8789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50BB3B55-DA58-4A9A-8F59-CF4779EA8789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50BB3B55-DA58-4A9A-8F59-CF4779EA8789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

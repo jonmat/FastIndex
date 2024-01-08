@@ -26,5 +26,43 @@ Since the use case for this generally would be to lookup data that may not chang
 1) [FastFilter](https://github.com/FastFilter/xorfilter)
 2) [Xor Filters: Faster and Smaller Than Bloom and Cuckoo Filters authored by Thomas Mueller Graf, Daniel Lemire](https://arxiv.org/abs/1912.08258)
 
+# Benchmarks
+```bash
+dotnet run -c Release --project ./BenchMark
+```
+```bash
+// * Summary *
+
+BenchmarkDotNet v0.13.12, Windows 10 (10.0.19045.3803/22H2/2022Update)
+Intel Core i5-10210U CPU 1.60GHz, 1 CPU, 8 logical and 4 physical cores
+.NET SDK 7.0.203
+  [Host]     : .NET 6.0.25 (6.0.2523.51912), X64 RyuJIT AVX2
+  DefaultJob : .NET 6.0.25 (6.0.2523.51912), X64 RyuJIT AVX2
+
+
+| Method                                | Mean       | Error    | StdDev   |
+|-------------------------------------- |-----------:|---------:|---------:|
+| Construct_FastFilter_10_Million_Items | 6,364.8 ms | 85.34 ms | 75.65 ms |
+| Contains_1_Million_Lookups            |   381.3 ms |  4.96 ms |  4.64 ms |
+| Index_1_Million_Lookups               |   436.2 ms |  7.30 ms | 10.23 ms |
+
+// * Hints *
+Outliers
+  BenchMarkTests.Construct_FastFilter_10_Million_Items: Default -> 1 outlier  was  removed (6.77 s)
+  BenchMarkTests.Index_1_Million_Lookups: Default               -> 6 outliers were removed (485.89 ms..539.99 ms)
+
+// * Legends *
+  Mean   : Arithmetic mean of all measurements
+  Error  : Half of 99.9% confidence interval
+  StdDev : Standard deviation of all measurements
+  1 ms   : 1 Millisecond (0.001 sec)
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:07:27 (447.39 sec), executed benchmarks: 3
+
+Global total time: 00:07:32 (452.21 sec), executed benchmarks: 3
+
+```
+
 
 
