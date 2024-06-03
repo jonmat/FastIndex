@@ -13,7 +13,7 @@ No fancy charts: On a 10th gen Intel I5 laptop, with 100 million keys, the avera
 # Improvements
 The main property leveraged to compute the index relies on the design of XOR filters making use of 3 constant size array segments, which lends to the simplicity of computing the index.
 
-Computing the index requires knowing which of the 3 array segments—that make up the XOR filters used to generate a fingerprint—is the primary segment, and saving that off. The presented solution stores the primary segment's index value in a lookaside Byte array. But since it only requires 2 bits to store a value between 0 and 2—representing array segments 0, 1, or 2—an improved solution for storage efficiency would be to multiplex those 2 bits onto the fingerprint. The downside of course, is that due to the fact that XOR filters are an example of a [probabilistic lookup strategy](https://medium.com/hyperblogblog/probabilistic-data-structure-use-cases-b414574b8961), loosing 2 bits from the fingerprint means that you increase the likelihood of a hash collision. 
+Computing the index requires knowing which of the 3 array segments—that make up the XOR filters used to generate a fingerprint—is the primary segment, and saving that off. The presented solution stores the primary segment's index value in a lookaside Byte array. But since it only requires 2 bits to store a value between 0 and 2—representing array segments 0, 1, or 2—an improved solution for storage efficiency would be to multiplex those 2 bits onto the fingerprint. The downside of course, is that due to the fact that XOR filters are an example of a [probabilistic lookup strategy](https://medium.com/hyperblogblog/probabilistic-data-structure-use-cases-b414574b8961), loosing 2 bits from the fingerprint means that you increase the likelihood of a hash collision--but, note that multiplexing means that the computation for the index is nearly identical to that of a contains.
 
 # Generation Improvements
 A simple solution for decreasing the amount of time to construct the filter is to make use of all of the processing cores available, and run the algorithm in parallel on subsets of the key space, by partitioning the key space into distinct subsets, and creating a separate XOR filter for each distinct subset. Of course, doing this implies that the complexity of managing multiple XOR filters for a given key space goes up.
@@ -37,7 +37,7 @@ The best way to learn how to use this class is to load the solution into visual 
 
 # Benchmarks
 ```bash
-dotnet run -c Release --project ./BenchMark
+dotnet run -c Release --project BenchMark
 ```
 ```bash
 // * Summary *
